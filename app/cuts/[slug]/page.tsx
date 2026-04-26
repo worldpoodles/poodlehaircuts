@@ -2,14 +2,15 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { POODLE_CUTS, getCutBySlug } from '../../../lib/cuts'
 
-interface Props { params: { slug: string } }
+interface Props { params: Promise<{ slug: string }> }
 
 export async function generateStaticParams() {
   return POODLE_CUTS.map(cut => ({ slug: cut.slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const cut = getCutBySlug(params.slug)
+  const { slug } = await params
+  const cut = getCutBySlug(slug)
   if (!cut) return {}
   return {
     title: `${cut.name} for Poodles — Complete Guide`,
@@ -28,8 +29,9 @@ const DIFFICULTY_COLORS = {
   Advanced: { bg: '#e8c4c4', text: '#a03333' },
 }
 
-export default function CutPage({ params }: Props) {
-  const cut = getCutBySlug(params.slug)
+export default async function CutPage({ params }: Props) {
+  const { slug } = await params
+  const cut = getCutBySlug(slug)
   if (!cut) notFound()
 
   const diff = DIFFICULTY_COLORS[cut.difficulty]
